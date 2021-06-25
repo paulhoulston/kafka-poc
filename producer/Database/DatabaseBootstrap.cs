@@ -7,6 +7,25 @@ namespace kafka_poc.Database
 {
     public class DatabaseBootstrap : DatabaseBootstrap.IDatabaseBootstrap
     {
+        static readonly Dictionary<string, string> tableList = new Dictionary<string, string>
+            {
+                {
+                    "Preferences",
+                    @"Create Table Preferences (
+                        Id Integer Primary Key Not Null
+                        ,[Type] VARCHAR(100) Not Null
+                    );"
+                },
+                {
+                    "Outbox",
+                     @"Create Table Outbox (
+                        Id Integer Primary Key Not Null
+                        ,[TopicName] Varchar(255) Not Null
+                        ,[Data] Varchar Not Null
+                    );"
+                }
+            };
+
         public interface IDatabaseBootstrap
         {
             void Setup();
@@ -21,27 +40,18 @@ namespace kafka_poc.Database
 
         public void Setup()
         {
-            using var connection = new SqliteConnection(databaseConfig.Name);
-            connection.Open();
+            using var db = new SqliteConnection(databaseConfig.Name);
+            db.Open();
 
-            var tableList = new[] { "Preferences" };
+            var sqlLiteTables = GetSqliteTables(db);
 
-            var sqlLiteTables = GetSqliteTables(connection);
-
-            foreach (var tableName in tableList)
+            foreach (var tableName in tableList.Keys)
             {
                 if (!sqlLiteTables.Contains(tableName))
-                {
-                    if (tableName.Equals("Preferences")) CreatePreferencesTable(connection);
-                }
+                    db.Execute(tableList[tableName]);
             }
         }
 
-        static void CreatePreferencesTable(SqliteConnection connection) => connection.Execute(
-            @"Create Table Preferences (
-                 Id INTEGER PRIMARY KEY
-                ,[Type] VARCHAR(100) NOT NULL
-            );");
-        static IEnumerable<string> GetSqliteTables(SqliteConnection connection) => connection.Query<string>("SELECT name FROM sqlite_master WHERE type='table';");
+        static IEnumerable<string> GetSqliteTables(SqliteConnection db) => db.Query<string>("SELECT name FROM sqlite_master WHERE type='table';");
     }
 }

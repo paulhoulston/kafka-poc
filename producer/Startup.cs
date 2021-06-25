@@ -26,7 +26,7 @@ namespace kafka_poc
             services.AddSingleton<DatabaseBootstrap.IDatabaseBootstrap, DatabaseBootstrap>();
             services.AddSingleton<PreferenceRetriever.IGetPreferencesById, PreferenceRetriever>();
             services.AddSingleton<PreferenceLister.IListPreferences, PreferenceLister>();
-            services.AddSingleton<PreferenceCreator.ICreatePreferences, PreferenceCreator>();
+            services.AddSingleton<PreferenceCreationService.IOrchestratePreferenceCreation, PreferenceCreationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

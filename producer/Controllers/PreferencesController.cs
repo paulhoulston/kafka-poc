@@ -14,18 +14,18 @@ namespace kafka_poc.Controllers
         readonly ILogger<PreferencesController> _logger;
         readonly PreferenceRetriever.IGetPreferencesById _preferenceGetter;
         readonly PreferenceLister.IListPreferences _preferenceLister;
-        readonly PreferenceCreator.ICreatePreferences _preferenceCreator;
+        readonly PreferenceCreationService.IOrchestratePreferenceCreation _preferenceCreationSvc;
 
         public PreferencesController(
             ILogger<PreferencesController> logger,
             PreferenceRetriever.IGetPreferencesById preferenceGetter,
             PreferenceLister.IListPreferences preferenceLister,
-            PreferenceCreator.ICreatePreferences preferenceCreator)
+            PreferenceCreationService.IOrchestratePreferenceCreation preferenceCreationSvc)
         {
             _logger = logger;
             _preferenceGetter = preferenceGetter;
             _preferenceLister = preferenceLister;
-            _preferenceCreator = preferenceCreator;
+            _preferenceCreationSvc = preferenceCreationSvc;
         }
 
         [HttpGet]
@@ -44,8 +44,11 @@ namespace kafka_poc.Controllers
         [HttpPost]
         public async Task<dynamic> Post([FromBody] PreferenceWithoutInternals preference)
         {
-            var createdPreference = await _preferenceCreator.CreatePreference(preference);
-            return new { links = new { preference = preferenceUri(createdPreference.Id) } };
+            dynamic response = null;
+            await _preferenceCreationSvc.CreatePreferenceAsync(
+                preference,
+                preferenceId => response = new { links = new { preference = preferenceUri(preferenceId) } });
+            return response;
         }
 
         static dynamic ConvertPreferenceToResult(Preference record) => new
