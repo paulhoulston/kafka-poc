@@ -23,6 +23,7 @@ namespace kafka_poc.Database
             PreferenceWithoutInternals preference,
             Action<int> onPreferenceCreated)
         {
+            await SemaphoreManager.Lock(SemaphoreManager.Keys.Preferences);
             using var db = new SqliteConnection(_databaseConfig.Name);
             await db.OpenAsync();
 
@@ -32,6 +33,7 @@ namespace kafka_poc.Database
             await new OutboxWriter<Preference>().QueueMessage(db, "Preferences", new Preference(preferenceId, preference));
 
             await trans.CommitAsync();
+            SemaphoreManager.Release(SemaphoreManager.Keys.Preferences);
 
             onPreferenceCreated(preferenceId);
         }

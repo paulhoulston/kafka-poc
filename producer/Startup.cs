@@ -1,5 +1,6 @@
 using System;
 using kafka_poc.Database;
+using kafka_poc.Outbox;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +28,7 @@ namespace kafka_poc
             services.AddSingleton<PreferenceRetriever.IGetPreferencesById, PreferenceRetriever>();
             services.AddSingleton<PreferenceLister.IListPreferences, PreferenceLister>();
             services.AddSingleton<PreferenceCreationService.IOrchestratePreferenceCreation, PreferenceCreationService>();
+            services.AddHostedService<OutboxProcessorService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

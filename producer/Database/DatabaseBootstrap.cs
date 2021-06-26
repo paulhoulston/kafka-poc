@@ -22,6 +22,16 @@ namespace kafka_poc.Database
                         Id Integer Primary Key Not Null
                         ,[TopicName] Varchar(255) Not Null
                         ,[Data] Varchar Not Null
+                        ,[Created] TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );"
+                },
+                {
+                    "OutboxArchive",
+                     @"Create Table OutboxArchive (
+                        Id Integer Primary Key Not Null
+                        ,[TopicName] Varchar(255) Not Null
+                        ,[Data] Varchar Not Null
+                        ,[Created] TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );"
                 }
             };
