@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace kafka_poc.Controllers
+namespace kafka_poc
 {
     public static class ExtensionMethods
     {
