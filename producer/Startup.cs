@@ -28,6 +28,7 @@ namespace kafka_poc
             services.AddSingleton<PreferenceRetriever.IGetPreferencesById, PreferenceRetriever>();
             services.AddSingleton<PreferenceLister.IListPreferences, PreferenceLister>();
             services.AddSingleton<PreferenceCreationService.IOrchestratePreferenceCreation, PreferenceCreationService>();
+            services.AddSingleton<DatabaseWrapper.IAbstractAwayTheDatabase, DatabaseWrapper>();
             services.AddHostedService<OutboxProcessorService>();
         }
 

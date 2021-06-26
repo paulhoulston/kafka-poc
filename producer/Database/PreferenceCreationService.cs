@@ -3,38 +3,31 @@ using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 using kafka_poc.Models;
-using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
 namespace kafka_poc.Database
 {
     public class PreferenceCreationService : PreferenceCreationService.IOrchestratePreferenceCreation
     {
-        readonly DatabaseConfig _databaseConfig;
-
+        readonly DatabaseWrapper.IAbstractAwayTheDatabase _dbAbstractor;
         public interface IOrchestratePreferenceCreation
         {
             Task CreatePreferenceAsync(PreferenceWithoutInternals preference, Action<int> onPreferenceCreated);
         }
 
-        public PreferenceCreationService(DatabaseConfig databaseConfig) => _databaseConfig = databaseConfig;
+        public PreferenceCreationService(DatabaseWrapper.IAbstractAwayTheDatabase dbAbstractor) => _dbAbstractor = dbAbstractor;
 
         public async Task CreatePreferenceAsync(
             PreferenceWithoutInternals preference,
             Action<int> onPreferenceCreated)
         {
-            await SemaphoreManager.Lock(SemaphoreManager.Keys.Preferences);
-            using var db = new SqliteConnection(_databaseConfig.Name);
-            await db.OpenAsync();
+            await _dbAbstractor.ExecuteAsync(db => Go(db, preference, onPreferenceCreated));
+        }
 
-            using var trans = await db.BeginTransactionAsync();
-
+        async Task Go(IDbConnection db, PreferenceWithoutInternals preference, Action<int> onPreferenceCreated)
+        {
             var preferenceId = await new PreferenceCreator().CreatePreference(db, preference);
             await new OutboxWriter<Preference>().QueueMessage(db, "Preferences", new Preference(preferenceId, preference));
-
-            await trans.CommitAsync();
-            SemaphoreManager.Release(SemaphoreManager.Keys.Preferences);
-
             onPreferenceCreated(preferenceId);
         }
 
