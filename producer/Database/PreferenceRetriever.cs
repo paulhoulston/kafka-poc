@@ -32,7 +32,7 @@ namespace kafka_poc.Database
             int preferenceId,
             Action<PreferenceWithoutId> onPreferenceFound,
             Action onPreferenceNotFound) =>
-                await _dbWrapper.ExecuteAsync(db => GetPreference(db, preferenceId, onPreferenceFound, onPreferenceNotFound));
+                await _dbWrapper.ExecuteAsync(db => GetPreference(db, preferenceId, onPreferenceFound, onPreferenceNotFound), false);
 
         async Task GetPreference(
             IDbConnection db,

@@ -59,6 +59,6 @@ namespace kafka_poc.Outbox
             await db.ExecuteAsync(@"Delete From Outbox Where Id = @Id", new { item.Id });
         }
 
-        static Task<IEnumerable<OutboxModel>> GetOutboxItems(IDbConnection db) => db.QueryAsync<OutboxModel>("Select Id, TopicName, Data From Outbox;");
+        static Task<IEnumerable<OutboxModel>> GetOutboxItems(IDbConnection db) => db.QueryAsync<OutboxModel>("Select Id, TopicName, Data From Outbox;", false);
     }
 }

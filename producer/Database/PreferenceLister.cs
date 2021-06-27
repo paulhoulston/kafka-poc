@@ -19,7 +19,7 @@ namespace kafka_poc.Database
         public async Task<IEnumerable<Preference>> ListPreferences()
         {
             IEnumerable<Preference> preferences = null;
-            await _dbWrapper.ExecuteAsync(async db => preferences = await db.QueryAsync<Preference>(LIST_SQL));
+            await _dbWrapper.ExecuteAsync(async db => preferences = await db.QueryAsync<Preference>(LIST_SQL), false);
             return preferences;
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -15,20 +16,25 @@ namespace kafka_poc.Database
 
         public interface IAbstractAwayTheDatabase
         {
-            Task ExecuteAsync(Func<IDbConnection, Task> sqlFunc);
+            Task ExecuteAsync(Func<IDbConnection, Task> sqlFunc, bool useTransaction = true);
         }
 
-        public async Task ExecuteAsync(Func<IDbConnection, Task> sqlFunc)
+        public async Task ExecuteAsync(Func<IDbConnection, Task> sqlFunc, bool useTransaction = true)
         {
+            DbTransaction transaction = null;
             await _semaphore.WaitAsync();
             using var db = new SqliteConnection(_databaseConfig.Name);
-            await db.OpenAsync();
 
-            using var trans = await db.BeginTransactionAsync();
-
+            if (useTransaction)
+            {
+                await db.OpenAsync();
+                transaction = await db.BeginTransactionAsync();
+            }
             await sqlFunc(db);
 
-            await trans.CommitAsync();
+            if (useTransaction)
+                await transaction.CommitAsync();
+
             _semaphore.Release();
         }
     }
