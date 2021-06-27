@@ -1,5 +1,6 @@
 using System;
 using kafka_poc.Database;
+using kafka_poc.Kafka;
 using kafka_poc.Outbox;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,6 +30,10 @@ namespace kafka_poc
             services.AddSingleton<PreferenceLister.IListPreferences, PreferenceLister>();
             services.AddSingleton<PreferenceCreationService.IOrchestratePreferenceCreation, PreferenceCreationService>();
             services.AddSingleton<DatabaseWrapper.IAbstractAwayTheDatabase, DatabaseWrapper>();
+            services.AddSingleton<OutboxArchiver.IArchiveOutboxItems, OutboxArchiver>();
+            services.AddSingleton<KafkaPublisher.IPublishEventsToKafka, KafkaPublisher>();
+            services.AddSingleton<OutboxLister.IGetAllOutboxItems, OutboxLister>();
+
             services.AddHostedService<OutboxProcessorService>();
         }
 

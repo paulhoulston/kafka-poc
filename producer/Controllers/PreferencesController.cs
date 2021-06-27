@@ -34,7 +34,7 @@ namespace kafka_poc.Controllers
             var records = await _preferenceLister.ListPreferences();
 
             var resultsModel = new List<dynamic>();
-            records.ForEach(r => resultsModel.Add(ConvertPreferenceToResult(r.Id, r)));
+            records.NullSafeForEach(r => resultsModel.Add(ConvertPreferenceToResult(r.Id, r)));
             return new { links = new { self = "/preferences" }, data = resultsModel };
         }
 

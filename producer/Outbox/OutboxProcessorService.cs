@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using Dapper;
 using kafka_poc.Database;
+using kafka_poc.Kafka;
 using kafka_poc.Models;
 using Microsoft.Extensions.Hosting;
 
@@ -14,9 +13,22 @@ namespace kafka_poc.Outbox
     {
         const int THREAD_DELAY_MS = 1000;
         const int THREAD_DELAY_MS_FOR_EXCEPTION = 5000;
-        readonly DatabaseWrapper.IAbstractAwayTheDatabase _dbAbstractor;
+        readonly DatabaseWrapper.IAbstractAwayTheDatabase _dbWrapper;
+        readonly OutboxArchiver.IArchiveOutboxItems _outboxArchiver;
+        readonly KafkaPublisher.IPublishEventsToKafka _kafkaPublisher;
+        readonly OutboxLister.IGetAllOutboxItems _outboxLister;
 
-        public OutboxProcessorService(DatabaseWrapper.IAbstractAwayTheDatabase dbAbstractor) => _dbAbstractor = dbAbstractor;
+        public OutboxProcessorService(
+            DatabaseWrapper.IAbstractAwayTheDatabase dbWrapper,
+            OutboxArchiver.IArchiveOutboxItems outboxArchiver,
+            KafkaPublisher.IPublishEventsToKafka kafkaPublisher,
+            OutboxLister.IGetAllOutboxItems outboxLister)
+        {
+            _dbWrapper = dbWrapper;
+            _outboxArchiver = outboxArchiver;
+            _kafkaPublisher = kafkaPublisher;
+            _outboxLister = outboxLister;
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -24,7 +36,7 @@ namespace kafka_poc.Outbox
             {
                 try
                 {
-                    await _dbAbstractor.ExecuteAsync(Go);
+                    await _dbWrapper.ExecuteAsync(Go);
                     await Task.Delay(THREAD_DELAY_MS, stoppingToken);
                 }
                 catch (Exception ex)
@@ -37,28 +49,17 @@ namespace kafka_poc.Outbox
 
         async Task Go(IDbConnection db)
         {
-            foreach (var item in await GetOutboxItems(db))
+            var outboxItems = await _outboxLister.GetAll(db);
+            outboxItems.NullSafeForEach(async item =>
             {
-                //Process item - logic to follow...
-                await ArchiveOutboxEntry(db, item);
-            }
+                await PublishEventsToKafka(item);
+                await _outboxArchiver.ArchiveOutboxEntry(db, item);
+            });
         }
 
-        static async Task ArchiveOutboxEntry(IDbConnection db, OutboxModel item)
+        async Task PublishEventsToKafka(OutboxModel kafkaData)
         {
-            await db.ExecuteAsync(
-                @"Insert Into OutboxArchive(TopicName, Data)
-                    Select TopicName, Data
-                    From Outbox
-                    Where Id = @Id", new
-                {
-                    Id = item.Id,
-                    Created = DateTime.UtcNow
-                });
-
-            await db.ExecuteAsync(@"Delete From Outbox Where Id = @Id", new { item.Id });
+            await _kafkaPublisher.Publish(kafkaData.TopicName, kafkaData.Data);
         }
-
-        static Task<IEnumerable<OutboxModel>> GetOutboxItems(IDbConnection db) => db.QueryAsync<OutboxModel>("Select Id, TopicName, Data From Outbox;", false);
     }
 }
