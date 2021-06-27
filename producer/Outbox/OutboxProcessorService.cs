@@ -49,17 +49,17 @@ namespace kafka_poc.Outbox
 
         async Task Go(IDbConnection db)
         {
-            var outboxItems = await _outboxLister.GetAll(db);
+            var outboxItems = await _outboxLister.GetAllAsync(db);
             outboxItems.NullSafeForEach(async item =>
             {
                 await PublishEventsToKafka(item);
-                await _outboxArchiver.ArchiveOutboxEntry(db, item);
+                await _outboxArchiver.ArchiveOutboxEntryAsync(db, item);
             });
         }
 
         async Task PublishEventsToKafka(OutboxModel kafkaData)
         {
-            await _kafkaPublisher.Publish(kafkaData.TopicName, kafkaData.Data);
+            await _kafkaPublisher.PublishAsync(kafkaData.TopicName, kafkaData.Data);
         }
     }
 }

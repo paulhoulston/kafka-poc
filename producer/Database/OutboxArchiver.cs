@@ -10,7 +10,7 @@ namespace kafka_poc.Database
     {
         public interface IArchiveOutboxItems
         {
-            Task ArchiveOutboxEntry(IDbConnection db, OutboxModel item);
+            Task ArchiveOutboxEntryAsync(IDbConnection db, OutboxModel item);
         }
 
         const string INSERT_INTO_OUTBOX_ARCHIVE_SQL = @"Insert Into OutboxArchive(
@@ -28,7 +28,7 @@ namespace kafka_poc.Database
                                                 Where
                                                     Id = @Id";
 
-        public async Task ArchiveOutboxEntry(IDbConnection db, OutboxModel item)
+        public async Task ArchiveOutboxEntryAsync(IDbConnection db, OutboxModel item)
         {
             await db.ExecuteAsync(
                 INSERT_INTO_OUTBOX_ARCHIVE_SQL, new

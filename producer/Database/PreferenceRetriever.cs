@@ -22,13 +22,13 @@ namespace kafka_poc.Database
 
         public interface IGetPreferencesById
         {
-            Task GetPreference(
+            Task GetPreferenceAsync(
                 int preferenceId,
                 Action<PreferenceWithoutId> onPreferenceFound,
                 Action onPreferenceNotFound);
         }
 
-        public async Task GetPreference(
+        public async Task GetPreferenceAsync(
             int preferenceId,
             Action<PreferenceWithoutId> onPreferenceFound,
             Action onPreferenceNotFound) =>

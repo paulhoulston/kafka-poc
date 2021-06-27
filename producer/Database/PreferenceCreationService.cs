@@ -26,8 +26,8 @@ namespace kafka_poc.Database
 
         async Task CreatePreferenceAsync(IDbConnection db, PreferenceCreationModel preference, Action<int> onPreferenceCreated)
         {
-            var preferenceId = await new PreferenceCreator().CreatePreference(db, preference);
-            await new OutboxWriter<Preference>().QueueMessage(db, "Preferences", new Preference(preferenceId, preference));
+            var preferenceId = await new PreferenceCreator().CreatePreferenceAsync(db, preference);
+            await new OutboxWriter<Preference>().QueueMessageAsync(db, "Preferences", new Preference(preferenceId, preference));
             onPreferenceCreated(preferenceId);
         }
 
@@ -36,7 +36,7 @@ namespace kafka_poc.Database
             const string INSERT_SQL = "Insert Into Preferences([Type]) Values (@Type);";
             const string GET_MAX_ID_SQL = "select Max(Id) From Preferences";
 
-            public async Task<int> CreatePreference(IDbConnection db, PreferenceCreationModel preferenceModel)
+            public async Task<int> CreatePreferenceAsync(IDbConnection db, PreferenceCreationModel preferenceModel)
             {
                 await db.ExecuteAsync(INSERT_SQL, new { preferenceModel.Type });
                 return await db.ExecuteScalarAsync<int>(GET_MAX_ID_SQL);
@@ -47,7 +47,7 @@ namespace kafka_poc.Database
         {
             const string INSERT_SQL = "Insert Into Outbox(TopicName, Data) Values (@TopicName, @Data);";
 
-            public async Task QueueMessage(IDbConnection db, string topicName, T data) =>
+            public async Task QueueMessageAsync(IDbConnection db, string topicName, T data) =>
                 await db.ExecuteAsync(INSERT_SQL, new
                 {
                     TopicName = topicName,

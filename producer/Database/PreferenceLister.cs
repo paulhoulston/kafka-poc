@@ -13,10 +13,10 @@ namespace kafka_poc.Database
 
         public interface IListPreferences
         {
-            Task<IEnumerable<Preference>> ListPreferences();
+            Task<IEnumerable<Preference>> GetAllAsync();
         }
 
-        public async Task<IEnumerable<Preference>> ListPreferences()
+        public async Task<IEnumerable<Preference>> GetAllAsync()
         {
             IEnumerable<Preference> preferences = null;
             await _dbWrapper.ExecuteAsync(async db => preferences = await db.QueryAsync<Preference>(LIST_SQL), false);

@@ -6,10 +6,10 @@ namespace kafka_poc.Kafka
     {
         public interface IPublishEventsToKafka
         {
-            Task Publish(string topicName, string data);
+            Task PublishAsync(string topicName, string data);
         }
 
-        public async Task Publish(string topicName, string data)
+        public async Task PublishAsync(string topicName, string data)
         {
             //code to follow....
             

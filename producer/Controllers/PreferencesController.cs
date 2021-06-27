@@ -31,7 +31,7 @@ namespace kafka_poc.Controllers
         [HttpGet]
         public async Task<dynamic> Get()
         {
-            var records = await _preferenceLister.ListPreferences();
+            var records = await _preferenceLister.GetAllAsync();
 
             var resultsModel = new List<dynamic>();
             records.NullSafeForEach(r => resultsModel.Add(ConvertPreferenceToResult(r.Id, r)));
@@ -43,7 +43,7 @@ namespace kafka_poc.Controllers
         {
             IActionResult result = null;
 
-            await _preferenceGetter.GetPreference(
+            await _preferenceGetter.GetPreferenceAsync(
                 id,
                 preference => result = Ok(ConvertPreferenceToResult(id, preference)),
                 () => result = NotFound(new Error

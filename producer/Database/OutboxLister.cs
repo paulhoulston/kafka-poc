@@ -11,9 +11,9 @@ namespace kafka_poc.Database
         const string GET_SQL = "Select Id, TopicName, Data From Outbox;";
         public interface IGetAllOutboxItems
         {
-            Task<IEnumerable<OutboxModel>> GetAll(IDbConnection db);
+            Task<IEnumerable<OutboxModel>> GetAllAsync(IDbConnection db);
         }
 
-        public async Task<IEnumerable<OutboxModel>> GetAll(IDbConnection db) => await db.QueryAsync<OutboxModel>(GET_SQL);
+        public async Task<IEnumerable<OutboxModel>> GetAllAsync(IDbConnection db) => await db.QueryAsync<OutboxModel>(GET_SQL);
     }
 }
