@@ -25,6 +25,12 @@ namespace kafka_poc
             services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.IgnoreNullValues = true);
 
             services.AddSingleton(new DatabaseConfig { Name = Configuration["DatabaseName"] });
+
+            services.AddSingleton(new KafkaConfig
+            {
+                BootstrapServers = Configuration["Kafka:BootstrapServers"]
+            });
+
             services.AddSingleton<DatabaseBootstrap.IDatabaseBootstrap, DatabaseBootstrap>();
             services.AddSingleton<PreferenceRetriever.IGetPreferencesById, PreferenceRetriever>();
             services.AddSingleton<PreferenceLister.IListPreferences, PreferenceLister>();
