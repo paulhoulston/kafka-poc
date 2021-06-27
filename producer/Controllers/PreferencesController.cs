@@ -34,15 +34,28 @@ namespace kafka_poc.Controllers
             var records = await _preferenceLister.ListPreferences();
 
             var resultsModel = new List<dynamic>();
-            records.ForEach(r => resultsModel.Add(ConvertPreferenceToResult(r)));
+            records.ForEach(r => resultsModel.Add(ConvertPreferenceToResult(r.Id, r)));
             return new { links = new { self = "/preferences" }, data = resultsModel };
         }
 
         [HttpGet("{id:int}")]
-        public async Task<dynamic> Get(int id) => PreferencesController.ConvertPreferenceToResult((Preference)await _preferenceGetter.GetPreference(id));
+        public async Task<IActionResult> Get(int id)
+        {
+            IActionResult result = null;
+
+            await _preferenceGetter.GetPreference(
+                id,
+                preference => result = Ok(ConvertPreferenceToResult(id, preference)),
+                () => result = NotFound(new Error
+                {
+                    ErrorMessage = $"Preference not found [id: {id}]"
+                }));
+
+            return result;
+        }
 
         [HttpPost]
-        public async Task<dynamic> Post([FromBody] PreferenceWithoutInternals preference)
+        public async Task<dynamic> Post([FromBody] PreferenceCreationModel preference)
         {
             dynamic response = null;
             await _preferenceCreationSvc.CreatePreferenceAsync(
@@ -51,10 +64,10 @@ namespace kafka_poc.Controllers
             return response;
         }
 
-        static dynamic ConvertPreferenceToResult(Preference record) => new
+        static dynamic ConvertPreferenceToResult(int preferenceId, PreferenceWithoutId preference) => new
         {
-            links = new { self = preferenceUri(record.Id) },
-            preference = record
+            links = new { self = preferenceUri(preferenceId) },
+            preference = preference
         };
 
         static string preferenceUri(int id) => $"/preferences/{id}";

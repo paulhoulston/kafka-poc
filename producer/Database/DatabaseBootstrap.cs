@@ -14,6 +14,8 @@ namespace kafka_poc.Database
                     @"Create Table Preferences (
                         Id Integer Primary Key Not Null
                         ,[Type] VARCHAR(100) Not Null
+                        ,[Created] TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        ,[LastModified] TIMESTAMP
                     );"
                 },
                 {

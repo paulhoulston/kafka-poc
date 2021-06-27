@@ -2,15 +2,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapper;
 using kafka_poc.Models;
-using Microsoft.Data.Sqlite;
 
 namespace kafka_poc.Database
 {
     public class PreferenceLister : PreferenceLister.IListPreferences
     {
-        readonly DatabaseConfig _databaseConfig;
-        public PreferenceLister(DatabaseConfig databaseConfig) => _databaseConfig = databaseConfig;
-
+        const string LIST_SQL = "Select Id, [Type], Created, LastModified From Preferences";
+        readonly DatabaseWrapper.IAbstractAwayTheDatabase _dbWrapper;
+        public PreferenceLister(DatabaseWrapper.IAbstractAwayTheDatabase dbWrapper) => _dbWrapper = dbWrapper;
 
         public interface IListPreferences
         {
@@ -19,9 +18,9 @@ namespace kafka_poc.Database
 
         public async Task<IEnumerable<Preference>> ListPreferences()
         {
-            using var conn = new SqliteConnection(_databaseConfig.Name);
-            return await conn.QueryAsync<Preference>(
-                "Select Id, [Type] From Preferences");
+            IEnumerable<Preference> preferences = null;
+            await _dbWrapper.ExecuteAsync(async db => preferences = await db.QueryAsync<Preference>(LIST_SQL));
+            return preferences;
         }
     }
 }

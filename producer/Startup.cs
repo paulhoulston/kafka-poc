@@ -21,7 +21,7 @@ namespace kafka_poc
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.IgnoreNullValues = true);
 
             services.AddSingleton(new DatabaseConfig { Name = Configuration["DatabaseName"] });
             services.AddSingleton<DatabaseBootstrap.IDatabaseBootstrap, DatabaseBootstrap>();

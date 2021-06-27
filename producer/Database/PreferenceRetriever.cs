@@ -1,26 +1,52 @@
+using System;
+using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 using kafka_poc.Models;
-using Microsoft.Data.Sqlite;
 
 namespace kafka_poc.Database
 {
     public class PreferenceRetriever : PreferenceRetriever.IGetPreferencesById
     {
-        readonly DatabaseConfig _databaseConfig;
-        public PreferenceRetriever(DatabaseConfig databaseConfig) => _databaseConfig = databaseConfig;
+        const string GET_PREFERENCE_BY_ID_SQL = @"Select
+                                                    Id
+                                                    ,[Type]
+                                                    ,Created
+                                                    ,LastModified
+                                                From
+                                                    Preferences
+                                                Where
+                                                    Id = @id;";
+        readonly DatabaseWrapper.IAbstractAwayTheDatabase _dbWrapper;
+        public PreferenceRetriever(DatabaseWrapper.IAbstractAwayTheDatabase dbWrapper) => _dbWrapper = dbWrapper;
 
         public interface IGetPreferencesById
         {
-            Task<Preference> GetPreference(int id);
+            Task GetPreference(
+                int preferenceId,
+                Action<PreferenceWithoutId> onPreferenceFound,
+                Action onPreferenceNotFound);
         }
 
-        public async Task<Preference> GetPreference(int id)
+        public async Task GetPreference(
+            int preferenceId,
+            Action<PreferenceWithoutId> onPreferenceFound,
+            Action onPreferenceNotFound) =>
+                await _dbWrapper.ExecuteAsync(db => GetPreference(db, preferenceId, onPreferenceFound, onPreferenceNotFound));
+
+        async Task GetPreference(
+            IDbConnection db,
+            int preferenceId,
+            Action<PreferenceWithoutId> onPreferenceFound,
+            Action onPreferenceNotFound)
         {
-            using var conn = new SqliteConnection(_databaseConfig.Name);
-            return await conn.QuerySingleOrDefaultAsync<Preference>(
-                "Select Id, [Type] From Preferences Where Id = @id;",
-                 new { id });
+            var preference = await db.QuerySingleOrDefaultAsync<Preference>(GET_PREFERENCE_BY_ID_SQL, new { id = preferenceId });
+
+            if (preference == null)
+                onPreferenceNotFound();
+            else
+                onPreferenceFound(preference);
+
         }
     }
 }

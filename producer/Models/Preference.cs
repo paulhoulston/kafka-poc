@@ -1,14 +1,21 @@
+using System;
+
 namespace kafka_poc.Models
 {
-    public class PreferenceWithoutInternals
+    public class PreferenceCreationModel
     {
         public string @Type { get; set; }
     }
+    public class PreferenceWithoutId : PreferenceCreationModel
+    {
+        public DateTime Created { get; set; }
+        public DateTime? LastModified { get; set; }
+    }
 
-    public class Preference : PreferenceWithoutInternals
+    public class Preference : PreferenceWithoutId
     {
         public Preference() { }
-        public Preference(int id, PreferenceWithoutInternals pref)
+        public Preference(int id, PreferenceCreationModel pref)
         {
             Id = id;
             Type = pref.Type;
